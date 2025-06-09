@@ -20,6 +20,8 @@
             --button-hover-bg: #0056b3;
             --danger-bg: #dc3545;
             --danger-hover-bg: #c82333;
+            --grey-bg: #6c757d;
+            --grey-hover-bg: #5a6268;
         }
 
         body {
@@ -154,9 +156,12 @@
             flex-wrap: wrap;
             justify-content: center;
             gap: 15px;
+            align-items: center;
         }
 
         .btn {
+            display: inline-block; /* For <a> tag to behave like a button */
+            text-decoration: none; /* For <a> tag */
             color: white;
             background-color: var(--button-bg);
             border: none;
@@ -183,6 +188,12 @@
         }
         .btn-email:hover {
             background-color: #4a5056;
+        }
+        .btn-secondary {
+            background-color: var(--grey-bg);
+        }
+        .btn-secondary:hover {
+            background-color: var(--grey-hover-bg);
         }
 
         #final-score {
@@ -423,8 +434,9 @@
         <section class="actions">
             <div class="actions-grid">
                 <button type="button" id="calculate-btn" class="btn">Υπολογισμός Βαθμολογίας</button>
-                <button type="button" id="pdf-btn" class="btn btn-pdf">Λήψη ως PDF</button>
+                <button type="button" id="pdf-btn" class="btn btn-pdf">Λήψη Ρουμπρίκας (PDF)</button>
                 <button type="button" id="email-btn" class="btn btn-email">Προετοιμασία Email</button>
+                <a href="Σχάρα Αξιολόγησης Ξένων Γλωσσών στις Εξετάσεις.pdf" download class="btn btn-secondary">Λήψη Σχάρας Αξιολόγησης</a>
             </div>
         </section>
 
