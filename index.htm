@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ρουμπρίκα Αξιολόγησης Εκπαιδευτικού Σεναρίου</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #005a9c;
+            --secondary-color: #f0f8ff;
+            --border-color: #ccc;
+            --header-bg: #004071;
+            --button-bg: #007bff;
+            --button-hover-bg: #0056b3;
+            --danger-bg: #dc3545;
+            --danger-hover-bg: #c82333;
+        }
+
+        body {
+            font-family: 'Open Sans', Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            background: #fff;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        }
+
+        header {
+            text-align: center;
+            padding-bottom: 10px;
+        }
+
+        header h1 {
+            color: var(--primary-color);
+            margin: 0;
+        }
+
+        .top-credits {
+            text-align: center;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .top-credits p {
+            margin: 2px 0;
+            font-size: 0.85rem;
+            color: #555;
+            line-height: 1.4;
+        }
+
+        .user-info, .results, .actions {
+            margin-bottom: 25px;
+            padding: 15px;
+            background-color: var(--secondary-color);
+            border-left: 5px solid var(--primary-color);
+            border-radius: 5px;
+        }
+        
+        .user-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        input[type="text"], input[type="password"], input[type="date"], textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        input[type="text"]:disabled {
+            background-color: #e9ecef;
+            cursor: not-allowed;
+        }
+
+        .rubric-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        .rubric-table th, .rubric-table td {
+            border: 1px solid var(--border-color);
+            padding: 12px;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        .rubric-table th {
+            background-color: var(--header-bg);
+            color: white;
+            font-size: 0.9rem;
+        }
+
+        .criterion-column {
+            width: 15%;
+            font-weight: bold;
+            background-color: var(--secondary-color);
+        }
+
+        .rating-cell {
+            text-align: center;
+            vertical-align: middle;
+        }
+        
+        .rating-cell input[type="radio"] {
+            transform: scale(1.5);
+            cursor: pointer;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+        
+        input[readonly], textarea[readonly] {
+            background-color: #e9ecef;
+        }
+
+        .actions {
+            text-align: center;
+        }
+
+        .actions-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .btn {
+            color: white;
+            background-color: var(--button-bg);
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn:hover {
+            background-color: var(--button-hover-bg);
+        }
+
+        .btn-pdf {
+            background-color: var(--danger-bg);
+        }
+        .btn-pdf:hover {
+            background-color: var(--danger-hover-bg);
+        }
+        .btn-email {
+            background-color: #5a6268;
+        }
+        .btn-email:hover {
+            background-color: #4a5056;
+        }
+
+        #final-score {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            text-align: center;
+            margin-top: 10px;
+        }
+        
+        #final-score span {
+            display: block;
+            margin-top: 5px;
+            font-size: 1rem;
+            color: #555;
+            font-weight: normal;
+        }
+        
+        footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            text-align: center;
+            border-top: 1px solid var(--border-color);
+            font-size: 0.9rem;
+            color: #777;
+        }
+        
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 10% auto;
+            padding: 25px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 600px;
+            border-radius: 10px;
+            position: relative;
+        }
+
+        .close-button {
+            color: #aaa;
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        
+        #copy-btn {
+            margin-top: 15px;
+        }
+
+        @media (max-width: 992px) {
+            .rubric-table th, .rubric-table td {
+                font-size: 0.9rem;
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container" id="capture-area">
+        <header>
+            <h1>Ρουμπρίκα Αξιολόγησης Εκπαιδευτικού Σεναρίου</h1>
+        </header>
+
+        <section class="top-credits">
+            <p>Δημιουργία/Επιμέλεια: Παναγιώτης Δόμβρος (CC BY-NC) 🎓✍️</p>
+            <p>Εκπαιδευτικός Αγγλικών – Θεατρολόγος 🎭📚 | Επιμορφωτής Τ.Π.Ε 💻📖</p>
+            <p>Διευθυντής 1ου Γυμνασίου Πυλαίας 🏫👨‍🏫</p>
+        </section>
+
+        <section class="user-info">
+            <h2>Στοιχεία Αξιολόγησης</h2>
+            <div class="user-info-grid">
+                <div class="form-group">
+                    <label for="access-code">Κωδικός Πρόσβασης</label>
+                    <input type="password" id="access-code" placeholder="Εισάγετε τον κωδικό για ενεργοποίηση">
+                </div>
+                <div class="form-group">
+                    <label for="trainee-name">Ονοματεπώνυμο Εκπαιδευόμενου/ης</label>
+                    <input type="text" id="trainee-name" placeholder="Απαιτείται κωδικός" disabled>
+                </div>
+                <div class="form-group">
+                    <label for="eval-date">Ημερομηνία Αξιολόγησης</label>
+                    <input type="date" id="eval-date">
+                </div>
+            </div>
+        </section>
+
+        <main>
+            <form id="rubric-form">
+                 <table class="rubric-table">
+                    <thead>
+                        <tr>
+                            <th class="criterion-column">Κριτήριο Αξιολόγησης</th>
+                            <th>Εξαιρετικό (4)</th>
+                            <th>Πολύ Καλό (3)</th>
+                            <th>Ικανοποιητικό (2)</th>
+                            <th>Χρήζει Βελτίωσης (1)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="criterion-column">1. Ταυτότητα & Στόχευση</td>
+                            <td>Ο τίτλος είναι περιεκτικός. Όλα τα πεδία της ταυτότητας (γνωστικό αντικείμενο, προφίλ, επίπεδο, διάρκεια, προαπαιτούμενα) είναι πλήρως και με σαφήνεια συμπληρωμένα.</td>
+                            <td>Ο τίτλος είναι λειτουργικός. Τα περισσότερα πεδία της ταυτότητας είναι συμπληρωμένα, αλλά μπορεί να υπάρχουν μικρές ασάφειες ή παραλείψεις.</td>
+                            <td>Ο τίτλος είναι γενικός. Κάποια από τα βασικά πεδία της ταυτότητας λείπουν ή είναι συμπληρωμένα ελλιπώς.</td>
+                            <td>Ο τίτλος απουσιάζει ή είναι ακατάλληλος. Τα περισσότερα πεδία της ταυτότητας είναι κενά.</td>
+                        </tr>
+                        <tr>
+                           <td></td>
+                           <td class="rating-cell"><input type="radio" name="crit1" value="4" required></td>
+                           <td class="rating-cell"><input type="radio" name="crit1" value="3"></td>
+                           <td class="rating-cell"><input type="radio" name="crit1" value="2"></td>
+                           <td class="rating-cell"><input type="radio" name="crit1" value="1"></td>
+                        </tr>
+                        <tr>
+                            <td class="criterion-column">2. Σκεπτικό & Παιδαγωγική Προσέγγιση</td>
+                            <td>Το σκεπτικό περιγράφει και αιτιολογεί πλήρως τις παιδαγωγικές επιλογές. Αιτιολογείται άριστα η προστιθέμενη αξία της τεχνολογίας. Τα είδη μάθησης (π.χ. διερευνητική) παρουσιάζονται ξεκάθαρα.</td>
+                            <td>Το σκεπτικό περιγράφει καλά τις παιδαγωγικές επιλογές. Η αιτιολόγηση της χρήσης της τεχνολογίας είναι επαρκής, αλλά θα μπορούσε να είναι βαθύτερη.</td>
+                            <td>Το σκεπτικό είναι γενικό. Η αιτιολόγηση της χρήσης της τεχνολογίας είναι επιφανειακή ή τυπική.</td>
+                            <td>Το σκεπτικό απουσιάζει ή είναι ασύνδετο με το σενάριο. Δεν γίνεται αναφορά στην παιδαγωγική ή την αξία της τεχνολογίας.</td>
+                        </tr>
+                        <tr>
+                           <td></td>
+                           <td class="rating-cell"><input type="radio" name="crit2" value="4" required></td>
+                           <td class="rating-cell"><input type="radio" name="crit2" value="3"></td>
+                           <td class="rating-cell"><input type="radio" name="crit2" value="2"></td>
+                           <td class="rating-cell"><input type="radio" name="crit2" value="1"></td>
+                        </tr>
+                        <tr>
+                           <td class="criterion-column">3. Μαθησιακά Αποτελέσματα</td>
+                           <td>Τα αποτελέσματα είναι σαφή, μετρήσιμα και διατυπώνονται διακριτά και για τις τρεις κατηγορίες (γνωστικό αντικείμενο, τεχνολογία, μαθησιακή διαδικασία).</td>
+                           <td>Τα αποτελέσματα είναι σαφή, αλλά μπορεί να μην είναι εύκολα μετρήσιμα. Καλύπτουν και τις τρεις κατηγορίες, αλλά με άνιση έμφαση.</td>
+                           <td>Τα αποτελέσματα είναι γενικά διατυπωμένα ή δεν καλύπτουν και τις τρεις απαιτούμενες κατηγορίες.</td>
+                           <td>Τα αποτελέσματα απουσιάζουν, είναι ασαφή ή δεν αντιστοιχούν στις δραστηριότητες του σεναρίου.</td>
+                        </tr>
+                        <tr>
+                           <td></td>
+                           <td class="rating-cell"><input type="radio" name="crit3" value="4" required></td>
+                           <td class="rating-cell"><input type="radio" name="crit3" value="3"></td>
+                           <td class="rating-cell"><input type="radio" name="crit3" value="2"></td>
+                           <td class="rating-cell"><input type="radio" name="crit3" value="1"></td>
+                        </tr>
+                        <tr>
+                           <td class="criterion-column">4. Αναλυτική Περιγραφή Δραστηριοτήτων</td>
+                           <td>Κάθε δραστηριότητα περιγράφεται αναλυτικά με όλα τα πεδία συμπληρωμένα (διάρκεια, ρόλοι, ενέργειες, κ.λπ.) με απόλυτη σαφήνεια και λογική συνοχή. Η περιγραφή επιτρέπει την εύκολη αναπαραγωγή του σεναρίου.</td>
+                           <td>Η περιγραφή των δραστηριοτήτων είναι καλή και ως επί το πλείστον πλήρης. Μπορεί να υπάρχουν μικρές ασάφειες σε κάποια πεδία (π.χ. ενέργειες μαθητή).</td>
+                           <td>Η περιγραφή είναι ελλιπής. Κάποια πεδία δεν είναι συμπληρωμένα ή οι πληροφορίες είναι γενικές και όχι συγκεκριμένες.</td>
+                           <td>Η περιγραφή είναι επιγραμματική και δεν επιτρέπει την κατανόηση ή αναπαραγωγή του σεναρίου.</td>
+                        </tr>
+                         <tr>
+                           <td></td>
+                           <td class="rating-cell"><input type="radio" name="crit4" value="4" required></td>
+                           <td class="rating-cell"><input type="radio" name="crit4" value="3"></td>
+                           <td class="rating-cell"><input type="radio" name="crit4" value="2"></td>
+                           <td class="rating-cell"><input type="radio" name="crit4" value="1"></td>
+                        </tr>
+                        <tr>
+                           <td class="criterion-column">5. Αξιολόγηση</td>
+                           <td>Περιγράφονται σαφείς, πολλαπλοί και κατάλληλοι τρόποι αξιολόγησης (διαμορφωτική, τελική, αυτοαξιολόγηση κ.λπ.) που συνδέονται άμεσα με τα μαθησιακά αποτελέσματα.</td>
+                           <td>Περιγράφονται τρόποι αξιολόγησης, αλλά η σύνδεσή τους με τα μαθησιακά αποτελέσματα δεν είναι πάντα ξεκάθαρη.</td>
+                           <td>Αναφέρεται το είδος της αξιολόγησης, αλλά χωρίς λεπτομέρειες για την εφαρμογή του.</td>
+                           <td>Η ενότητα της αξιολόγησης απουσιάζει ή είναι κενή.</td>
+                        </tr>
+                         <tr>
+                           <td></td>
+                           <td class="rating-cell"><input type="radio" name="crit5" value="4" required></td>
+                           <td class="rating-cell"><input type="radio" name="crit5" value="3"></td>
+                           <td class="rating-cell"><input type="radio" name="crit5" value="2"></td>
+                           <td class="rating-cell"><input type="radio" name="crit5" value="1"></td>
+                        </tr>
+                        <tr>
+                           <td class="criterion-column">6. Φύλλα Εργασίας</td>
+                           <td>Το φύλλο εργασίας είναι άρτια σχεδιασμένο, προωθεί την αυτενέργεια και την κριτική σκέψη, έχει σαφείς αλλά ανοιχτές οδηγίες και περιγράφει ξεκάθαρα το αναμενόμενο παραδοτέο.</td>
+                           <td>Το φύλλο εργασίας είναι λειτουργικό και καλά δομημένο, αλλά μπορεί να είναι περισσότερο καθοδηγητικό από όσο χρειάζεται, περιορίζοντας ελαφρώς την αυτενέργεια.</td>
+                           <td>Το φύλλο εργασίας είναι απλό, κυρίως καθοδηγητικό και αναπαράγει παραδοσιακές πρακτικές.</td>
+                           <td>Το φύλλο εργασίας απουσιάζει, είναι πρόχειρο ή οι οδηγίες του είναι ασαφείς.</td>
+                        </tr>
+                         <tr>
+                           <td></td>
+                           <td class="rating-cell"><input type="radio" name="crit6" value="4" required></td>
+                           <td class="rating-cell"><input type="radio" name="crit6" value="3"></td>
+                           <td class="rating-cell"><input type="radio" name="crit6" value="2"></td>
+                           <td class="rating-cell"><input type="radio" name="crit6" value="1"></td>
+                        </tr>
+                         <tr>
+                           <td class="criterion-column">7. Επεκτασιμότητα & Προτάσεις</td>
+                           <td>Υπάρχουν συγκεκριμένες, καινοτόμες και χρήσιμες προτάσεις για επεκτάσεις ή διαφοροποιήσεις του σεναρίου. Επισημαίνονται εύστοχα πιθανά σημεία δυσκολίας.</td>
+                           <td>Υπάρχουν προτάσεις για επέκταση, αλλά είναι κάπως γενικές ή προφανείς.</td>
+                           <td>Οι προτάσεις για επέκταση είναι πολύ περιορισμένες ή τυπικές.</td>
+                           <td>Δεν υπάρχουν προτάσεις για επέκταση ή προσαρμογή του σεναρίου.</td>
+                        </tr>
+                         <tr>
+                           <td></td>
+                           <td class="rating-cell"><input type="radio" name="crit7" value="4" required></td>
+                           <td class="rating-cell"><input type="radio" name="crit7" value="3"></td>
+                           <td class="rating-cell"><input type="radio" name="crit7" value="2"></td>
+                           <td class="rating-cell"><input type="radio" name="crit7" value="1"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </form>
+        </main>
+
+        <section class="results">
+            <h2>Αποτελέσματα & Παρατηρήσεις</h2>
+            <div class="form-group">
+                <label for="comments">Γενικές Παρατηρήσεις / Προτάσεις Βελτίωσης</label>
+                <textarea id="comments" placeholder="Γράψτε εδώ τις παρατηρήσεις σας..."></textarea>
+            </div>
+            <div id="final-score">
+                Παρακαλώ πατήστε "Υπολογισμός" για να δείτε τη βαθμολογία.
+            </div>
+        </section>
+
+        <section class="actions">
+            <div class="actions-grid">
+                <button type="button" id="calculate-btn" class="btn">Υπολογισμός Βαθμολογίας</button>
+                <button type="button" id="pdf-btn" class="btn btn-pdf">Λήψη ως PDF</button>
+                <button type="button" id="email-btn" class="btn btn-email">Προετοιμασία Email</button>
+            </div>
+        </section>
+
+    </div> <div id="email-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="close-modal-btn">&times;</span>
+            <h2>Προετοιμασία Email</h2>
+            <p>Το email είναι έτοιμο. Πατήστε το κουμπί για να αντιγράψετε το κείμενο και επικολλήστε το στον email client της επιλογής σας (π.χ. Gmail).</p>
+            <div class="form-group">
+                <label for="email-subject">Θέμα:</label>
+                <input type="text" id="email-subject" readonly>
+            </div>
+            <div class="form-group">
+                <label for="email-body">Κυρίως Κείμενο:</label>
+                <textarea id="email-body" rows="10" readonly></textarea>
+            </div>
+            <button id="copy-btn" class="btn">Αντιγραφή Κειμένου & Θέματος</button>
+        </div>
+    </div>
+
+
+    <footer>
+        <p>Δημιουργία/Επιμέλεια: Παναγιώτης Δόμβρος (CC BY-NC) 🎓✍️</p>
+        <p>Εκπαιδευτικός Αγγλικών – Θεατρολόγος 🎭📚 | Επιμορφωτής Τ.Π.Ε 💻📖</p>
+        <p>Διευθυντής 1ου Γυμνασίου Πυλαίας 🏫👨‍🏫</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set current date
+            const dateField = document.getElementById('eval-date');
+            if(dateField) {
+                 dateField.valueAsDate = new Date();
+            }
+
+            // --- Elements ---
+            const accessCodeInput = document.getElementById('access-code');
+            const traineeNameInput = document.getElementById('trainee-name');
+            const calculateBtn = document.getElementById('calculate-btn');
+            const pdfBtn = document.getElementById('pdf-btn');
+            const emailBtn = document.getElementById('email-btn');
+            const finalScoreDiv = document.getElementById('final-score');
+            const form = document.getElementById('rubric-form');
+            // Modal elements
+            const emailModal = document.getElementById('email-modal');
+            const closeModalBtn = document.getElementById('close-modal-btn');
+            const copyBtn = document.getElementById('copy-btn');
+            const emailSubjectField = document.getElementById('email-subject');
+            const emailBodyField = document.getElementById('email-body');
+
+            const correctCode = '5691';
+
+            // --- Event Listeners ---
+
+            // Enable name field on correct code
+            accessCodeInput.addEventListener('input', () => {
+                if (accessCodeInput.value === correctCode) {
+                    traineeNameInput.disabled = false;
+                    traineeNameInput.placeholder = 'Εισάγετε ονοματεπώνυμο';
+                    accessCodeInput.style.border = '2px solid green';
+                } else {
+                    traineeNameInput.disabled = true;
+                    traineeNameInput.placeholder = 'Απαιτείται κωδικός';
+                    traineeNameInput.value = '';
+                    accessCodeInput.style.border = '1px solid #ccc';
+                }
+            });
+
+            // Calculate Score
+            calculateBtn.addEventListener('click', calculateAndShowScore);
+            
+            // PDF Generation
+            pdfBtn.addEventListener('click', generateMultiPagePDF);
+
+            // Email Modal Logic
+            emailBtn.addEventListener('click', prepareEmailModal);
+            closeModalBtn.addEventListener('click', () => { emailModal.style.display = 'none'; });
+            window.addEventListener('click', (event) => { 
+                if (event.target == emailModal) {
+                     emailModal.style.display = 'none';
+                }
+            });
+            copyBtn.addEventListener('click', copyEmailContent);
+
+
+            // --- Functions ---
+            
+            function calculateAndShowScore() {
+                const checkedRadios = form.querySelectorAll('input[type="radio"]:checked');
+                
+                if (checkedRadios.length < 7) {
+                    finalScoreDiv.innerHTML = '<span style="color: red;">Παρακαλώ συμπληρώστε όλα τα κριτήρια.</span>';
+                    return null;
+                }
+                
+                let totalScore = 0;
+                checkedRadios.forEach(radio => {
+                    totalScore += parseInt(radio.value, 10);
+                });
+
+                const maxScore = 7 * 4; // 7 criteria * 4 points max
+                const percentage = ((totalScore / maxScore) * 100).toFixed(1);
+                
+                let gradeText = '';
+                if (percentage >= 90) gradeText = 'Άριστα';
+                else if (percentage >= 75) gradeText = 'Πολύ Καλά';
+                else if (percentage >= 50) gradeText = 'Ικανοποιητικά';
+                else gradeText = 'Χρήζει Σημαντικής Βελτίωσης';
+
+                finalScoreDiv.innerHTML = `Συνολική Βαθμολογία: ${totalScore} / ${maxScore} <br>
+                                           <span>(Ποσοστό: ${percentage}%) - Αξιολόγηση: <strong>${gradeText}</strong></span>`;
+                return { totalScore, maxScore, percentage, gradeText };
+            }
+
+            function generateMultiPagePDF() {
+                const name = traineeNameInput.value.trim();
+                if (traineeNameInput.disabled || !name) {
+                    alert('Παρακαλώ εισάγετε τον σωστό κωδικό και το ονοματεπώνυμο του εκπαιδευόμενου.');
+                    return;
+                }
+                
+                const elementToCapture = document.getElementById('capture-area');
+                const { jsPDF } = window.jspdf;
+                
+                // Hide buttons before capture to avoid them in the PDF
+                document.querySelector('.actions').style.display = 'none';
+
+                html2canvas(elementToCapture, { scale: 2, useCORS: true, windowWidth: elementToCapture.scrollWidth, windowHeight: elementToCapture.scrollHeight }).then(canvas => {
+                    // Show buttons again immediately after capture
+                    document.querySelector('.actions').style.display = 'block';
+
+                    const canvasWidth = canvas.width;
+                    const canvasHeight = canvas.height;
+                    
+                    const pdf = new jsPDF('p', 'mm', 'a4');
+                    const pdfWidth = pdf.internal.pageSize.getWidth();
+                    const pdfHeight = pdf.internal.pageSize.getHeight();
+                    
+                    const canvasAspectRatio = canvasWidth / canvasHeight;
+                    const pdfAspectRatio = pdfWidth / pdfHeight;
+
+                    const imgHeight = canvas.height * pdfWidth / canvas.width;
+                    let heightLeft = imgHeight;
+                    let position = 0;
+
+                    pdf.addImage(canvas, 'PNG', 0, position, pdfWidth, imgHeight);
+                    heightLeft -= pdfHeight;
+
+                    while (heightLeft > 0) {
+                        position = heightLeft - imgHeight;
+                        pdf.addPage();
+                        pdf.addImage(canvas, 'PNG', 0, position, pdfWidth, imgHeight);
+                        heightLeft -= pdfHeight;
+                    }
+                    
+                    const fileName = `Axiologisi_Senariou_${name.replace(/ /g, '_')}.pdf`;
+                    pdf.save(fileName);
+                });
+            }
+
+            function prepareEmailModal() {
+                const name = traineeNameInput.value.trim();
+                if (traineeNameInput.disabled || !name) {
+                    alert('Παρακαλώ εισάγετε τον σωστό κωδικό και το ονοματεπώνυμο του εκπαιδευόμενου.');
+                    return;
+                }
+                
+                const results = calculateAndShowScore();
+                if (!results) {
+                    alert('Παρακαλώ συμπληρώστε όλα τα κριτήρια πριν την αποστολή.');
+                    return;
+                }
+                
+                const comments = document.getElementById('comments').value;
+
+                const subject = `Αξιολόγηση Εκπαιδευτικού Σεναρίου για: ${name}`;
+                
+                let body = `Αγαπητέ/ή ${name},\n\n`;
+                body += `Παρακάτω θα βρείτε τη σύνοψη της αξιολόγησης για το εκπαιδευτικό σενάριο που υποβάλατε:\n\n`;
+                body += `--- ΑΠΟΤΕΛΕΣΜΑΤΑ ---\n`;
+                body += `Συνολική Βαθμολογία: ${results.totalScore} / ${results.maxScore}\n`;
+                body += `Ποσοστό: ${results.percentage}%\n`;
+                body += `Γενική Αξιολόγηση: ${results.gradeText}\n\n`;
+                
+                if(comments.trim()) {
+                    body += `--- ΠΑΡΑΤΗΡΗΣΕΙΣ / ΣΧΟΛΙΑ ---\n`;
+                    body += `${comments.trim()}\n\n`;
+                }
+
+                body += `Με εκτίμηση,\n`;
+                body += `Παναγιώτης Δόμβρος`;
+                
+                emailSubjectField.value = subject;
+                emailBodyField.value = body;
+                
+                emailModal.style.display = 'block';
+            }
+
+            function copyEmailContent() {
+                const subject = emailSubjectField.value;
+                const body = emailBodyField.value;
+                const fullContent = `Θέμα: ${subject}\n\n${body}`;
+
+                navigator.clipboard.writeText(fullContent).then(() => {
+                    const originalText = copyBtn.textContent;
+                    copyBtn.textContent = 'Αντιγράφηκε!';
+                    setTimeout(() => {
+                        copyBtn.textContent = originalText;
+                    }, 2000);
+                }).catch(err => {
+                    console.error('Could not copy text: ', err);
+                    alert('Η αντιγραφή απέτυχε.');
+                });
+            }
+
+        });
+    </script>
+
+</body>
+</html>
